@@ -198,7 +198,7 @@ def paint_max_stable(Max_stable,region_map, absorb, Width):
             region_map[0, j_temp, i_temp] = 130
 
 def main(argv):
-    image_name = "image1"
+    image_name = "tiger"
     im = cv2.imread(str(image_name)+".bmp")
 
     f1 = open('f1', 'w+')
@@ -209,6 +209,8 @@ def main(argv):
     # Width = 3840
     # Height = 736
     # Width = 736
+
+    delta = 1
 
     size_min = 121
     size_max = 8500
@@ -264,37 +266,43 @@ def main(argv):
     for i in xrange(Width):
         for j in xrange(Height):
             region_map[0,j,i] = 255
-
+    count_inten = 0
+    soma_pix_add = []
     for num_pix in histogram:                                                   #itera pelas intensidades
         for a in xrange(int(num_pix)):                                          #marca pixeis dessa intensidade na camada visivel (PX)
             i = int(position_vector[int(a+b)]%Width)
             j = int((position_vector[int(a+b)]-i)/Width)
             region_map[0, j, i] = 0
             #region_map[0, j, i] = 255
-        #checa se encontra regioes ja criadas
-        Q_prev = Q_curr
-        Q_curr = seed_list_filtered
-        for a in xrange(int(num_pix)):                                          #itera pelos pixeis adicionados nessa intensidade
-            i = int(position_vector[int(a+b)]%Width)
-            j = int((position_vector[int(a+b)]-i)/Width)
-            region_map, seed_list_filtered, seed_list, absorb = union_find(i, j, Width, size_min, size_max, region_map, seed_list, seed_list_filtered, absorb, 0, 1, f1, f2)              #vizinho norte
-            region_map, seed_list_filtered, seed_list, absorb = union_find(i, j, Width, size_min, size_max, region_map, seed_list, seed_list_filtered, absorb,0, -1, f1, f2)             #vizinho sul
-            region_map, seed_list_filtered, seed_list, absorb = union_find(i, j, Width, size_min, size_max, region_map, seed_list, seed_list_filtered, absorb,1, 0, f1, f2)              #vizinho leste
-            region_map, seed_list_filtered, seed_list, absorb = union_find(i, j, Width, size_min, size_max, region_map, seed_list, seed_list_filtered, absorb,-1, 0, f1, f2)             #vizinho oeste
+            soma_pix_add.append(num_pix)
+        if (count_inten == delta):
+            #checa se encontra regioes ja criadas
+            Q_prev = Q_curr
+            Q_curr = seed_list_filtered
+            for a in xrange(int(num_pix)):                                          #itera pelos pixeis adicionados nessa intensidade
+                i = int(position_vector[int(a+b)]%Width)
+                j = int((position_vector[int(a+b)]-i)/Width)
+                region_map, seed_list_filtered, seed_list, absorb = union_find(i, j, Width, size_min, size_max, region_map, seed_list, seed_list_filtered, absorb, 0, 1, f1, f2)              #vizinho norte
+                region_map, seed_list_filtered, seed_list, absorb = union_find(i, j, Width, size_min, size_max, region_map, seed_list, seed_list_filtered, absorb,0, -1, f1, f2)             #vizinho sul
+                region_map, seed_list_filtered, seed_list, absorb = union_find(i, j, Width, size_min, size_max, region_map, seed_list, seed_list_filtered, absorb,1, 0, f1, f2)              #vizinho leste
+                region_map, seed_list_filtered, seed_list, absorb = union_find(i, j, Width, size_min, size_max, region_map, seed_list, seed_list_filtered, absorb,-1, 0, f1, f2)             #vizinho oeste
 
-        Q_fut = seed_list_filtered
-        Max_stable = growth_rate(Q_prev, Q_curr, Q_fut, Max_stable)
+                Q_fut = seed_list_filtered
 
-        print >> f2, Max_stable
-        #print >> f2, "b = ", b
-        print "b = ", b
-        b = b + num_pix                                                         #incrementa valor b
-        #print >> f1, seed_list
-        # if (b == Height*Width):
-        #     im3 = region_map[0,:,:]#visual
-        #     cv2.imwrite("im_" +str(image_name) + ".bmp", im3)#visual
-        #     print >> f2, seed_list_filtered
-    paint_max_stable(Max_stable,region_map, absorb, Width)
+                #Max_stable = growth_rate(Q_prev, Q_curr, Q_fut, Max_stable)
+                print >> f2, Max_stable
+
+                #print >> f2, "b = ", b
+                count_inten = 0
+                soma_pix_add = []
+                print "b = ", b
+                b = b + num_pix                                                         #incrementa valor b
+                #print >> f1, seed_list
+                # if (b == Height*Width):
+                #     im3 = region_map[0,:,:]#visual
+                #     cv2.imwrite("im_" +str(image_name) + ".bmp", im3)#visual
+                #     print >> f2, seed_list_filtered
+    #paint_max_stable(Max_stable,region_map, absorb, Width)
     im3 = region_map[0,:,:]
     cv2.imwrite("im_" +str(image_name) + ".bmp", im3)
     f1.close()
